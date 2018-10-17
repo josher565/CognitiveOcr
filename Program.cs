@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
@@ -9,10 +10,7 @@ namespace CognitiveOcr
     {
         static void Main(string[] args)
         {
-            string imgUrl = "https://photos.app.goo.gl/aMacQbh9SeYnn6UF8";
-
-            Console.WriteLine("Please enter your api key");
-            var key = Console.ReadLine();
+            const string key = "db15df496b0c47cd915d159689d2408b";
 
             var client = new ComputerVisionClient(
                 new ApiKeyServiceClientCredentials(key),
@@ -22,22 +20,29 @@ namespace CognitiveOcr
             client.Endpoint = "https://westcentralus.api.cognitive.microsoft.com/vision/v2.0";
 
             Console.WriteLine("Analyzing...");
-            GetImageText(client, imgUrl).Wait();
+            
+            Console.ReadKey();
+
+            using(Stream imgStream = File.OpenRead("img\\words_img.jpg")){
+                Console.WriteLine("imgStream size " + imgStream.Length);
+                GetImageText(client, imgStream).Wait();
+            }
+
             Console.ReadKey();
         }
 
-        static async Task GetImageText(ComputerVisionClient client, string imageUrl){
+        static async Task GetImageText(ComputerVisionClient client, Stream imageUrl){
 
             // Finally some AI calls
-            var ocrResult = await client.RecognizeTextAsync(imageUrl, TextRecognitionMode.Printed);
-            WriteResults(ocrResult);
+            RecognizeTextInStreamHeaders ocrResult = 
+                await client.RecognizeTextInStreamAsync(imageUrl, TextRecognitionMode.Printed);
+            Console.WriteLine(ocrResult.OperationLocation);
+            await RetrieveAndWriteResults(client, ocrResult.OperationLocation);
         }
 
-        private static void WriteResults(RecognizeTextHeaders result)
+        static async Task RetrieveAndWriteResults(ComputerVisionClient client, string operationLocation)
         {
-            if (result != null){
-                foreach(var line in result.OperationLocation)
-            }
+            Console.WriteLine(operationLocation);
         }
     }
 }
