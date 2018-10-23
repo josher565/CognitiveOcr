@@ -15,7 +15,7 @@ namespace CognitiveOcr
             var client = new ComputerVisionClient(
                 new ApiKeyServiceClientCredentials(key),
                 new System.Net.Http.DelegatingHandler[] { }
-            ) 
+            );
             client.Endpoint = "https://westcentralus.api.cognitive.microsoft.com/vision/v2.0";
 
 
