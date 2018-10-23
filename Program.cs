@@ -10,12 +10,12 @@ namespace CognitiveOcr
     {
         static void Main(string[] args)
         {
-            const string key = "000000000";
+            const string key = "000000"; //put a valid key here.
 
             var client = new ComputerVisionClient(
                 new ApiKeyServiceClientCredentials(key),
                 new System.Net.Http.DelegatingHandler[] { }
-            );
+            ) 
             client.Endpoint = "https://westcentralus.api.cognitive.microsoft.com/vision/v2.0";
 
 
