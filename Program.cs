@@ -16,12 +16,12 @@ namespace CognitiveOcr
                 new ApiKeyServiceClientCredentials(key),
                 new System.Net.Http.DelegatingHandler[] { }
             );
-            client.Endpoint = "https://westcentralus.api.cognitive.microsoft.com/vision/v2.0";
+            client.Endpoint = "https://eastus.api.cognitive.microsoft.com/";
 
 
          
 
-            Console.WriteLine("Analyzing...");
+            Console.WriteLine("Press any key to begin...");
             
             Console.ReadKey();
 
@@ -29,22 +29,42 @@ namespace CognitiveOcr
                 Console.WriteLine("imgStream size " + imgStream.Length);
                 GetImageText(client, imgStream).Wait();
             }
-
+            
+            Console.WriteLine("Press any key to finish execution...");
             Console.ReadKey();
         }
 
-        static async Task GetImageText(ComputerVisionClient client, Stream imageUrl){
+        static async Task GetImageText(ComputerVisionClient client, Stream imgStream){
 
             // Finally some AI calls
             RecognizeTextInStreamHeaders ocrResult = 
-                await client.RecognizeTextInStreamAsync(imageUrl, TextRecognitionMode.Printed);
-            Console.WriteLine(ocrResult.OperationLocation);
+                await client.RecognizeTextInStreamAsync(imgStream, TextRecognitionMode.Printed);
+            
             await RetrieveAndWriteResults(client, ocrResult.OperationLocation);
         }
 
         static async Task RetrieveAndWriteResults(ComputerVisionClient client, string operationLocation)
         {
-            Console.WriteLine(operationLocation);
+            Console.WriteLine("Returned Location: " + operationLocation);
+
+            //lets get the Operation ID that is on the end of the operationLocation.
+            //we need this for our next call
+            string operationId = operationLocation.Substring(
+                operationLocation.Length - 36);
+            
+            Console.WriteLine("Operation ID: " + operationId);
+
+            TextOperationResult result =
+                await client.GetTextOperationResultAsync(operationId);
+            
+            while ((result.Status == TextOperationStatusCodes.Running ||
+                    result.Status == TextOperationStatusCodes.NotStarted)){
+                        Console.WriteLine("Client Status: " + result.Status);
+                        await Task.Delay(5000);
+                    }
+
+            foreach(Line line in result.RecognitionResult.Lines)
+                Console.WriteLine(line.Text);
         }
     }
 }
